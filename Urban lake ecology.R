@@ -3,17 +3,15 @@
 # Authors:  Chaozhong Tan, Sabine Greulich, Valentin Medina, Xue Zheng, Pao Canu, Alan Fritsch and Karl Matthias Wantzen 
 
 # set working direction
-setwd('D:\\PhD\\20211204 Lake ecological study\\Statistical analysis')
+setwd('D:\\PhD\\Lake ecological study\\Statistical analysis') # Set working direction where you store your data in .csv format
 library(vegan)
 library(ecodist) # MRM
 library(corrplot) # Correlation plot
 library(gamlss)
-library(betapart)
 library(rdacca.hp)
-# Define functions #####
+# Create useful functions ##### 
 {
   # Calculate the mean and SE of a matrix
-  # 'D:\PhD\Methods in PhD\Mean.SE.R'
   Mean.SE <- function(data){
     # Mean
     nrow <- nrow(data)
@@ -35,6 +33,7 @@ library(rdacca.hp)
     result <- cbind(mean,SE)
     return(result)
   }
+  
   Mean.SE.grp <- function(matrix,grp){
     title <- Element.grp(grp)
     n <- length(title)
@@ -49,8 +48,8 @@ library(rdacca.hp)
     return(result.F)
     return('col names are grp variables')
   }
+
   # Conduct wilcox.test of vector variable among groups
-  # 'D:\PhD\Methods in PhD\Wilcox.test.grp.R'
   Wilcox.test.grp <- function(data,grp){
     
     # See how many levels of the grp
@@ -101,8 +100,8 @@ library(rdacca.hp)
     
     return(result.F.F)
   }
+  
   # Define how many elements in a vector group
-  # 'D:\PhD\Methods in PhD\Element.grp.R'
   Element.grp <- function(data){
     
     element.F <- NULL
@@ -126,8 +125,8 @@ library(rdacca.hp)
     }
     return(element.F)
   }
+  
   # Replace the strings within a vector group
-  # 'D:\PhD\Methods in PhD\Replace.R'
   Replace <- function(original,replace){
     old <- Element.grp(original)
     new <- NULL
@@ -193,7 +192,7 @@ env.title <- c('Site', 'Lake', 'Site.number', 'type', 'water transparency', 'mac
                ,rep('canopy',1))
 
 # Head of the environmental variables (Ommited some variables because lack of space)
-# Note: NA represent no values. Because, only 'substrate type' is measured for both eulittoral and sublittoral zone.
+# Note: NA represent no values. Because, the 'substrate type' is only measured for both eulittoral and sublittoral zone but not for water surface.
 
 #         Site Lake Site.number type Water.transparency Macrophyte.breadth Silt.mud Wooden.debris.leaf.litters Macrophytes Gravel DO... EC.us.cm. 
 # 1 L1.S4.June   L1          S4  eu.                 53                4.0        0                         10          90      0  99.5       456
@@ -214,7 +213,7 @@ substrate <- env[,env.substrate.title == 'yes']
 other.env <- env[,env.other.env.title == 'yes'] # other env that are not substrate
 
 judge <- is.na(rowSums(other.env[,-c(1:5)]))
-other.env.rm.na <- other.env[judge==FALSE,]
+other.env.rm.na <- other.env[judge==FALSE,] # remove the empty value
 
 # Mean and SE of variables of three lakes
 title <- c('L1','L2','L3') # Three lakes in the study: Lake 1: Lake Bretonniere; Lake 2: Lake Bergeonnerie; lake 3: Lake Peupleraies.
@@ -294,7 +293,7 @@ result.F
 #'title.env' indicates which variables used for comparison. The L1, L2, L3 indicate which two of lakes are used for comparison
 
 #2. MACROPHYTE SECTION#####
-macrophyte <- read.csv('Macrophyte cover & weight - index ordered.csv')
+macrophyte <- read.csv('Macrophyte cover & weight.csv')
 macrophyte.title <- c('site','lake','site.number','type'
                       ,'weight','weight'
                       ,rep('species',15))
@@ -313,14 +312,15 @@ macrophyte.title <- c('site','lake','site.number','type'
 
 macrophyte.data <- macrophyte[,macrophyte.title=='species']
 
-#   2.1 SR at lake level #####
+# 2.1 SR at lake level #####
 macrophyte.col <- colSums(macrophyte.data)
 macrophyte.col[macrophyte.col>0]=1 # if value >0, then assign one
 SR <- sum(macrophyte.col);SR
 "Total species richness in three lakes:"
 SR
 
-#   2.1 SR at eulittoral zone and water surface #####
+# 2.2 SR at eulittoral zone and water surface #####
+
 # Separate the data into different lakes
 title <- Element.grp(macrophyte$Lake)
 n <- length(title) # n = how many lakes
@@ -351,7 +351,7 @@ rownames(result.F) <- NULL
 result.F
 
 
-#   2.2 Mean SE of weight, cover and SR at site level #####
+# 2.3 Mean SE of weight, cover and SR at site level #####
   # weight
 wet.dry_weight <- macrophyte[,macrophyte.title=='weight']
 title.weight <- macrophyte$Lake[macrophyte$Wet_weight>0] # remove the empty row for the title factor
@@ -403,7 +403,7 @@ result.cover.SR.F <- rbind(c('Lake level','','Eulittoral zone','','Water surface
 result.cover.SR.F
 result.weight.F
 
-#   2.3 Comparison of macrophyte cover among lakes #####
+#  2.4 Comparison of macrophyte cover among lakes #####
 title <- c('eu.','w.surf')
 i=0;result.F <- NULL
 repeat{
@@ -429,9 +429,8 @@ Wilcox.test.grp(wet.dry_weight$Wet_weight,title.weight)
 Wilcox.test.grp(wet.dry_weight$Dry_weight,title.weight)
 
 
-# 3. BENTHOS SECTION#####
-setwd('D:\\PhD\\20211204 Lake ecological study\\Statistical analysis')
-benthos <- read.csv('Site-species data - index ordered.csv')  # without the Qualitative data
+#3. BENTHOS SECTION#####
+benthos <- read.csv('Site-species data.csv')  # without the Qualitative data
 ben.title <- c('Site','Lake','Site.number','Type','Efforts',rep('Spe',66))
 benthos.data <- benthos[,ben.title=='Spe']
 
@@ -443,7 +442,7 @@ benthos.data <- benthos[,ben.title=='Spe']
 # 4 L1.S1.June   L1         S1    eu.       0.484      0      0     2     0     4
 # 5 L1.S1.June   L1         S1   sub.       0.240      0      0     0     0     4
 
-#   3.1 SR and density at site level #####
+# 3.1 SR and density at site level #####
 ben.lake.eu <- benthos[benthos$Type=='eu.',]
 ben.lake.sub <- benthos[benthos$Type == 'sub.',]
 ben.lake.w.surf <- benthos[benthos$Type == 'w.surf.',]
@@ -483,14 +482,14 @@ repeat{
 result.F  # colume : Lake Eulittoral, Sublittoral, Water surface; Row : Density, SR
 mean.se.F # colume : Lake (L1, L2, L3);  Row : Eulittoral, Sublittoral, Water surface
 
-# 4. NMDS and ANONSIM ####
+#4. NMDS and ANONSIM ####
 
-#   4.1 NMDS calculation #####
+# 4.1 NMDS calculation #####
 ben.data <- benthos[,ben.title=="Spe"]
 ben.rm.empty <- ben.data[rowSums(ben.data)>0,] 
 
-ben.lg <- log(ben.rm.empty +1) # otherwise the NMDS cannot display properly
-Jac.dist <- Jac.dis(ben.lg)# use 'BC distance'
+ben.lg <- log(ben.rm.empty +1) # have to log transformed, otherwise the NMDS cannot display properly
+Jac.dist <- Jac.dis(ben.lg)
 nmds <- metaMDS(Jac.dist)
 nmds$stress
 
@@ -498,11 +497,11 @@ nmds$stress
 score <- scores(nmds)               
 nmds.coord <- as.data.frame(score)  # convert coordinates to data frame
 
-#   4.2 Plot NMDS #####
+# 4.2 Plot NMDS #####
 
 # Setting two groups
 
-# 4.2.3 Setting color factors based on the Lake and sampling zone
+#   4.2.3 Setting color factors based on the Lake and sampling zone
 {
   grp1 <- benthos$Type[rowSums(ben.data)>0]
   grp2 <- benthos$Lake[rowSums(ben.data)>0]
@@ -540,9 +539,9 @@ nmds.spe.p <- cbind(nmds.spe$arrows,nmds.spe$r,nmds.spe$pvals)
 colnames(nmds.spe.p) <- c('NMDS1','NMDS2','R2','p-value')
 nmds.spe.p
 
-#   4.3 ANOSIM analysis #####
+# 4.3 ANOSIM analysis #####
 
-#       Dissimilarity of eulittoral zone
+#Dissimilarity of eulittoral zone
 Type.title <- benthos$Type
 Lake.title <- benthos$Lake
 
@@ -553,15 +552,15 @@ Lake.title <- Lake.title[rowSums(ben.data)>0] # remove empty
 ben.eu.lg <- ben.lg[Type.title=='eu.',]
 lake.title.eu <- Lake.title[Type.title=='eu.']
 
-#       Dissimilarity of sublittoral zone
+#Dissimilarity of sublittoral zone
 ben.sub.lg <- ben.lg[Type.title=='sub.',]
 lake.title.sub <- Lake.title[Type.title=='sub.']
 
-#       Dissimilarity of water surface
+#Dissimilarity of water surface
 ben.w.surf.lg <- ben.lg[Type.title=='w.surf.',]
 lake.title.w.surf <- Lake.title[Type.title=='w.surf.']
 
-#     4.3.2 ANOSIM of community dissimilarity among lakes #####
+#   4.3.2 ANOSIM of community dissimilarity among lakes #####
 Janc.dis <- Jac.dis(ben.eu.lg)  # BC and Jaccard distance are very similiar in terms of nMDS.
 mod1 <- anosim(Janc.dis, grouping = lake.title.eu)
 mod1
@@ -578,79 +577,49 @@ par(mfrow = c(3,1))
 plot(mod1);plot(mod2);plot(mod3)
 par(mfrow = c(1,1))
 
-# 6. CCA #####
-# Data input and remove empty
-{
-  setwd('D:\\PhD\\20211204 Lake ecological study\\Statistical analysis')
-  
-  benthos <- read.csv('Site-species data - index ordered.csv')  # without the Qualitative data
-  ben.title <- c('Site','Lake','Site.number','Type','Efforts',rep('Spe',66))
-  
-  env <- read.csv('Environmental data.csv')
-  env.title <- c('Site', 'Lake', 'Site.number', 'type', 'water transparency', 'macrophyte breadth'
-                 ,rep('substrate',4),rep('water qaulity',7)
-                 ,rep('canopy',1))
-  
-  macrophyte <- read.csv('Macrophyte cover & weight - index ordered.csv')
-  macrophyte.title <- c('site','lake','site.number','type'
-                        ,'wet_weight','dry_weight'
-                        ,rep('species',15))
-}
-{
-  # Other measured variables 
-  ### Attention ###
-  "I did not put breadth and canopy cover into the analysis
-  because there are limited number of variables in the CCA
-  and the variables are not the directly impact the macroinvertebrates"
-  
-   #m.breadth <- (env[,env.title== 'macrophyte breadth'])[env$type=='upper']
-   #canopy.cover <- (env$Modified.Caco); canopy.cover <- canopy.cover[is.na(canopy.cover)==FALSE]
-    w.trans <- env$Water.transparency; w.trans <- w.trans[is.na(w.trans)==FALSE]
-  
-    macrophyte.cover.eu <- rowSums(macrophyte[,-c(1:6)])[env$type=='eu.']
-    macrophyte.cover.w.surf<- rowSums(macrophyte[,-c(1:6)])[env$type=='sub.']
+#6. CCA #####
 
-  # Macrophyte cover  
-    # Eulittoral zone
-    macrophyte.eu <- cbind(macrophyte[,macrophyte.title=='species'],macrophyte.cover.eu)[macrophyte$Type=='eu.',]
-    macrophyte.binary <- macrophyte.eu; macrophyte.binary[macrophyte.binary>0]=1
-    
-    # Remove species and add the total cover of macrophyte
-    macrophyte.eu <- macrophyte.eu[,colSums(macrophyte.binary)>1]
-    
-    # Water surface
-    macrophyte.w.surf <- cbind(macrophyte[,macrophyte.title=='species'],macrophyte.cover.w.surf)[macrophyte$Type=='w.surf',]
-    macrophyte.binary <- macrophyte.w.surf; macrophyte.binary[macrophyte.binary>0]=1
-    
-    # Remove species and add the total cover of macrophyte
-    macrophyte.w.surf <- macrophyte.w.surf[,colSums(macrophyte.binary)>1]
-    
-  # Water quality data
-    water.quality <- (env[,env.title== 'water qaulity'])[env$type=='eu.',]
+# 6.1 Prepare the variables
+#   6.1.1 Other measured variables 
+### Attention ###
+"I did not put breadth and canopy cover into the analysis
+because there are limited number of variables in the CCA
+and the variables are not the directly impact the macroinvertebrates"
 
-  # Substrate
-    substrate.eu <- (env[,env.title=='substrate'])[env$type=='eu.',]; substrate.eu.scale <- scale(substrate.eu,center=TRUE,scale=TRUE)
-    substrate.sub <- (env[,env.title=='substrate'])[env$type=='sub.',]; substrate.sub.scale <- scale(substrate.sub,center=TRUE,scale=TRUE)
+  w.trans <- env$Water.transparency; w.trans <- w.trans[is.na(w.trans)==FALSE]
+
+  macrophyte.cover.eu <- rowSums(macrophyte[,-c(1:6)])[env$type=='eu.']
+  macrophyte.cover.w.surf<- rowSums(macrophyte[,-c(1:6)])[env$type=='sub.']
+
+#   6.1.2 Macrophyte cover  
+  # Eulittoral zone
+  macrophyte.eu <- cbind(macrophyte[,macrophyte.title=='species'],macrophyte.cover.eu)[macrophyte$Type=='eu.',]
+  macrophyte.binary <- macrophyte.eu; macrophyte.binary[macrophyte.binary>0]=1
   
-  # Benthos
-    ben.eu <- benthos[benthos$Type=='eu.',];ben.eu.data <- ben.eu[,-c(1:6)]
-    ben.sub <- benthos[benthos$Type=='sub.',];ben.sub.data <- ben.sub[,-c(1:6)]
-    ben.w.surf <- benthos[benthos$Type=='w.surf.',];ben.w.surf.data <- ben.w.surf[,-c(1:6)]
-}
+  # Remove rare species and add the total cover of macrophyte
+  macrophyte.eu <- macrophyte.eu[,colSums(macrophyte.binary)>1]
+  
+  # Water surface
+  macrophyte.w.surf <- cbind(macrophyte[,macrophyte.title=='species'],macrophyte.cover.w.surf)[macrophyte$Type=='w.surf',]
+  macrophyte.binary <- macrophyte.w.surf; macrophyte.binary[macrophyte.binary>0]=1
+  
+  # Remove rare species and add the total cover of macrophyte
+  macrophyte.w.surf <- macrophyte.w.surf[,colSums(macrophyte.binary)>1]
+  
+#   6.1.3 Water quality data
+  water.quality <- (env[,env.title== 'water qaulity'])[env$type=='eu.',]
 
-# Assign color to each group of species
-{
-  spe.names <- colnames(benthos)[-(1:5)]
-  spe.initial <- substring(spe.names,1,3) # taking the first four character of speceis name
-  Element.grp(spe.initial)
-  color.list <- c('yellow','aquamarine','chartreuse','bisque2','blueviolet'
-             ,'brown','black','blue','darkgoldenrod1','orchid'
-             ,'red','tan','seagreen')
-  Spe.col <- cbind(Element.grp(spe.initial), color.list)
-  Spe.col <- as.data.frame(Spe.col)
-}
-# Gather all the variables in lists. Therefore, it would be easier to be included in a loop
-{
+#   6.1.4 Substrate
+  substrate.eu <- (env[,env.title=='substrate'])[env$type=='eu.',]; substrate.eu.scale <- scale(substrate.eu,center=TRUE,scale=TRUE)
+  substrate.sub <- (env[,env.title=='substrate'])[env$type=='sub.',]; substrate.sub.scale <- scale(substrate.sub,center=TRUE,scale=TRUE)
+
+#   6.1.5 Benthos
+  ben.eu <- benthos[benthos$Type=='eu.',];ben.eu.data <- ben.eu[,-c(1:6)]
+  ben.sub <- benthos[benthos$Type=='sub.',];ben.sub.data <- ben.sub[,-c(1:6)]
+  ben.w.surf <- benthos[benthos$Type=='w.surf.',];ben.w.surf.data <- ben.w.surf[,-c(1:6)]
+
+
+# 6.2 Gather all the variables in lists. Therefore, it would be easier to be included in a loop
   env.eu    <- cbind(water.quality,w.trans)
   env.sub <- cbind(water.quality,w.trans)
   env.w.surf <- cbind(water.quality,w.trans)
@@ -672,11 +641,10 @@ par(mfrow = c(1,1))
     ,list(env.w.surf.scale,macrophyte.w.surf[,-c(4,7,8)]) #rm sp7, sp13, sp14 because of low occurence and percentage
   )
 
-  
-}
+
 title <- c('Eulittoral zone','Sublittoral zone', 'Water surface')
 
-#   6.1 CCA calculation #####
+# 6.3 A loop for CCA of three zones#####
 cca.hp <- function(){
   i=0;result.F <- NULL
   par(mfrow=c(2,2))
@@ -717,12 +685,12 @@ cca.hp <- function(){
     ben.lg <- log(ben.data+1)
     decorana(ben.lg) # DCA analysis (<3 use RDA; 4 use CCA)
   
-  #   6.3 CCA analysis ######
+#   6.3.1 CCA analysis ######
      explanatory <- as.data.frame(explanatory)
      spe.cca <- cca(ben.lg~.,data=explanatory) # ben.lg with all the column in explanatory vairables
      vif.cca(spe.cca) # co-linear coeffecience (the small the better, generally need < 10)
      
-    #6.4 CCA plot #####
+#   6.3.2 CCA plot #####
       
       #       6.4.1 default plot ####
       pl <- plot(spe.cca,scaling=3,main=title[i])
@@ -751,17 +719,17 @@ cca.hp <- function(){
       # 'arg' should be one of “sites”, “species”, “wa”, “lc”, “bp”, “reg”, “cn”
       # bp=variables and arrow
       
-  #   6.5 CCA statistical analysis #####
+#   6.3.3 CCA statistical analysis #####
   # Heriacical partition - HP
 
     # P.S: I waited four days to finish the analysis, which includes 12 variables. It took too much time...
 
-    # 6.5.1 This is what others normally do
+    # 6.3.3.1 This is what others normally do
     # sig.var <- anova.cca(spe.cca, by="term", step=1000)   # The sig. of every each variable
     sig.model <- anova.cca(spe.cca, step=999)            # Permutation test of result of CCA/RDA
     sig.model
     
-    # 6.5.2 other methods: RDACCA.hp to calculate the explained variance of each variable
+    # 6.3.3.2 other methods: RDACCA.hp to calculate the explained variance of each variable
     mod <- rdacca.hp(ben.lg,as.data.frame(explanatory), method="CCA", var.part=TRUE, type="adjR2")
     r.square <- mod$Total_explained_variation
     hier.part <- mod$Hier.part
@@ -797,27 +765,12 @@ cca.hp()
 result.list <- cca.hp()
 result.list
 
-#   6.6 output results #####
+# 6.4 output results #####
 capture.output(result.list,file='XX.text')
 
-# 7. Mid P: MACROPHYTE and BENTHOS #####
-{
-  setwd('D:\\PhD\\20211204 Lake ecological study\\Statistical analysis')
-  
-  benthos <- read.csv('Site-species data - index ordered.csv')  # without the Qualitative data
-  ben.title <- c('Site','Lake','Site.number','Type','Efforts',rep('Spe',66))
-  
-  env <- read.csv('Environmental data.csv')
-  env.title <- c('Site', 'Lake', 'Site.number', 'type', 'water transparency', 'macrophyte breadth'
-                 ,rep('substrate',4),rep('water qaulity',7)
-                 ,rep('canopy',1))
-  
-  macrophyte <- read.csv('Macrophyte cover & weight - index ordered.csv')
-  macrophyte.title <- c('site','lake','site.number','type'
-                        ,'wet_weight','dry_weight'
-                        ,rep('species',15))
-}
-#   7.1 indi/cover% ##### 
+#7. MACROPHYTE cover and BENTHOS abundance #####
+# 7.1 indi/sampling area ##### 
+
 # ben
 ben.w.surf <- benthos[benthos$Type == 'w.surf.',]
 judge <- ben.w.surf$Efforts.m2
@@ -827,7 +780,7 @@ ben.eu <- benthos[benthos$Type == 'eu.',]
 ben.rm <- ben.w.surf[judge>0,]
 ben.data <- ben.rm[,ben.title == 'Spe']
 
-# 7.1.1 benthos density and SR
+# benthos density and SR
 abundance.w.surf <- rowSums(ben.data)
 density.w.surf <- abundance.w.surf/0.24  # indi/m2
 
@@ -835,7 +788,7 @@ ben.data.binary <- ben.data
 ben.data.binary[ben.data.binary>0]=1
 SR.w.surf <- rowSums(ben.data.binary)
 
-# 7.1.2 macrophyte cover
+# 7.2 macrophyte cover
 cover <- rowSums(macrophyte[,macrophyte.title=='species'])
 cover.w.surf <- cover[macrophyte$Type=='w.surf'];cover.w.surf <- cover.w.surf[judge>0]
 
@@ -846,7 +799,7 @@ plot(density.w.surf~cover.w.surf,pch=pch.mid
      ,main='Mid P: Density(indi/m2)/Cover')
 legend('topleft',legend=c('Lake 1','Lake 2','Lake 3'),pch=c(1,2,3))
 
-# Wilcox.test of density among lakes
+# 7.3 Wilcox.test of density among lakes
 Wilcox.test.grp(density.w.surf,lake)
 
 matrix <- cbind(density.w.surf,rep(1,length(density.w.surf))) # to combine a column to perform the function Mean.SE.grp. Because this function can only deal with matrix
@@ -854,7 +807,7 @@ matrix <- cbind(density.w.surf,rep(1,length(density.w.surf))) # to combine a col
 Mean.SE.grp(matrix,lake)
 
 
-# 7.1.5 macroinvertebrate density and macrophyte in both Eulittoral zone and Water surface
+# 7.5 macroinvertebrate density and macrophyte in both Eulittoral zone and Water surface
 #   Eulittoral zone
 ben.eu.data <- ben.eu[,ben.title == 'Spe']
 abundance.eu <- rowSums(ben.eu.data)
